@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAlumnoRequest;
 use App\Http\Requests\UpdateAlumnoRequest;
 use App\Models\Alumno;
+use App\Models\Ccee;
+use Illuminate\Support\Facades\DB;
 
 class AlumnoController extends Controller
 {
@@ -30,9 +32,13 @@ class AlumnoController extends Controller
         if(($var = request()->query('nombre')) !== null){
             $alumnos->where('nombre', 'ilike', "%$var%");
         }
-
+        $alumnos = $alumnos->get();
+        foreach($alumnos as $alumno){
+            $notas = $this->notasMax($alumno);
+            $alumno->nota = array_sum($notas)/(count($notas)?: 1);
+        }
         return view('usoTablas', [
-            'alumnos' => $alumnos->get()
+            'alumnos' => $alumnos
         ]);
     }
 
@@ -43,7 +49,7 @@ class AlumnoController extends Controller
      */
     public function create()
     {
-        //
+        return view('Alumno.create');
     }
 
     /**
@@ -54,7 +60,10 @@ class AlumnoController extends Controller
      */
     public function store(StoreAlumnoRequest $request)
     {
-        //
+        $alum = new Alumno();
+        $alum->nombre = $request->nombre;
+        $alum->save();
+        return redirect()->route('alumnos.index');
     }
 
     /**
@@ -65,7 +74,9 @@ class AlumnoController extends Controller
      */
     public function show(Alumno $alumno)
     {
-        //
+        return view('Alumno.show', [
+            'alumno' => $alumno
+        ]);
     }
 
     /**
@@ -76,7 +87,9 @@ class AlumnoController extends Controller
      */
     public function edit(Alumno $alumno)
     {
-        //
+        return view('Alumno.edit',[
+            'alumno' => $alumno
+        ]);
     }
 
     /**
@@ -88,7 +101,9 @@ class AlumnoController extends Controller
      */
     public function update(UpdateAlumnoRequest $request, Alumno $alumno)
     {
-        //
+        $alumno->nombre = $request->nombre;
+        $alumno->save();
+        return redirect()->route('alumnos.index');
     }
 
     /**
@@ -99,6 +114,29 @@ class AlumnoController extends Controller
      */
     public function destroy(Alumno $alumno)
     {
-        //
+        foreach($alumno->notas as $nota){
+            $nota->delete();
+        }
+        $alumno->delete();
+        return redirect()->route('alumnos.index');
+    }
+    public function criterios(Alumno $alumno)
+    {
+        $colec = $this->notasMax($alumno);
+
+        return view('Alumno.criterios',[
+            'criterios' => $colec,
+            'alumno' => $alumno
+        ]);
+    }
+
+    private function notasMax(Alumno $alumno){
+        $criterios = $alumno->notas->groupBy('ccee_id');
+        $colec = [];
+        foreach($criterios as $c){
+            $new = $c->max('nota');
+            $colec[$c[0]->ccee->ce] = $new;
+        }
+        return $colec;
     }
 }
