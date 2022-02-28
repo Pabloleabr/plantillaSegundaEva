@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AlumnoController;
+use App\Http\Controllers\PrestadaController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,6 +24,16 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 Route::resource('alumnos',AlumnoController::class)->middleware(['auth']);
+
+Route::middleware(['auth'])->group(function(){
+    Route::get('peliculas', [PrestadaController::class, 'create'])
+    ->name('peliculas');
+    Route::get('peliculasAlquiladas', [PrestadaController::class, 'reservaUser'])
+    ->name('peliculasAlquiladas');
+    Route::post('alquilar/{pelicula}', [PrestadaController::class, 'store'])
+    ->name('alquilar');
+
+});
 
 Route::get('alumnos/criterios/{alumno}',[AlumnoController::class,'criterios'])
 ->middleware(['auth'])->name('criterios');
