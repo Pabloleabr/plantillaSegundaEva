@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\PrestadaController;
+use App\Http\Controllers\ReservaController;
+use App\Http\Controllers\VueloController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,6 +34,12 @@ Route::middleware(['auth'])->group(function(){
     ->name('peliculasAlquiladas');
     Route::post('alquilar/{pelicula}', [PrestadaController::class, 'store'])
     ->name('alquilar');
+
+    //ejecicio vuelos
+    Route::get('reservar/{vuelo}', [ReservaController::class, 'create'])->name('reservar');
+    Route::resource('reservas',ReservaController::class);
+
+    Route::get('vuelos', [VueloController::class, 'index'])->name('vuelo');
 
 });
 
