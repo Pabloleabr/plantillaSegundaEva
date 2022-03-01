@@ -45,7 +45,7 @@ class PrestadaController extends Controller
     public function reservaUser(){
         $user = Auth::user();
 
-        $alquiladas = Prestada::where('user_id' , $user->id);
+        $alquiladas = Prestada::with('pelicula')->where('user_id' , $user->id);
 
         return view('peliculas.alquiladas', [
             'prestadas' => $alquiladas->get()
